@@ -105,7 +105,8 @@ def main():
                    (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
         cv2.imshow('Gesture Media Control', frame)
-        
+        cv2.waitKey(1)
+    
     cap.release()
     cv2.destroyAllWindows()
 

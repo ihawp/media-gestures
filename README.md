@@ -14,11 +14,11 @@ build something with a camera
 
 The hand gestures enable you to volume up/down, skip, go back, pause, max volume.
 
-## Requirements
-- Python 3.8 - 3.12
-- opencv-python
-- mediapipe
-- pycaw
+## Requirements (versions I am using)
+- Python (3.8 - 3.12.6)
+- opencv-python (4.8.1.78)
+- mediapipe (0.10.21)
+- pycaw (20251023)
 - gesture_recognizer.task ([Download Here](https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task)).
 
 ### Gesture Recognizer dot Task
