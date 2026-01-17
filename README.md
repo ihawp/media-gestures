@@ -15,7 +15,7 @@ build something with a camera
 The hand gestures enable you to volume up/down, skip, go back, pause, max volume.
 
 ## Requirements
-- Python 3.x
+- Python 3.8 - 3.12
 - opencv-python
 - mediapipe
 - pycaw
