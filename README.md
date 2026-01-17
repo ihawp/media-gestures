@@ -37,7 +37,7 @@ This is a pre-trained model that recognizes hand gestures from the camera frames
 
 ![Pointing_Up](images_readme/Pointing_Up.JPG)
 
-### 4. ***Victory***: Replay/Last Song
+### 4. ***Victory***: Replay/Previous Song
 
 ![Victory](images_readme/Victory.JPG)
 
