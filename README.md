@@ -26,19 +26,25 @@ This is a pre-trained model that recognizes hand gestures from the camera frames
 
 ## Actions
 1. ***Closed_Fist***: Play/Pause Audio
+
 ![Closed_Fist](images_readme/Closed_Fist.JPG)
 
 2. ***ILoveYou***: Max Volume
+
 ![ILoveYou](images_readme/ILoveYou.JPG)
 
 3. ***Pointing_Up***: Next Song
+
 ![Pointing_Up](images_readme/Pointing_Up.JPG)
 
 4. ***Victory***: Replay/Last Song
+
 ![Victory](images_readme/Victory.JPG)
 
 5. ***Thumb Up***: Volume Up
+
 ![Thumb_Up](images_readme/Thumb_Up.JPG)
 
 6. ***Thumb Down***: Volume Down
+
 ![Thumb_Down](images_readme/Thumb_Down.JPG)
