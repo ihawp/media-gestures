@@ -2,21 +2,57 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from pycaw.pycaw import AudioUtilities
 import keyboard
 import time
+import platform
+import subprocess
+
+system = platform.system()
 
 """
 Issues after testing:
 
 - My face is not my hand, nor is it a thumb_down or a pointing_up
-- 
+- WSL was being a pain (normal), but trying to make cross-platform so I can install anywhere and utilize!
+    can also just add the 5 lines if I ever want to use this anywhere else.
+    Specificially I want to use it on my raspberry pi which I hope to addon to my car
+    as a media player, OBD reader, etc. Of course, it could utilize hotspot networks for internet
+    access and upload information or live stream stuff, idk man, anything.
+
+    Just need to make sure it has a small power supply for turning off the car.
+
+    We can likely signal that the car is off by receiving no response or a certain response from OBD,
+    And then we can engage in a shutdown as to not corrupt the raspberry pis memory.
+    This shutdown will be powered by the battery.
+
+    The PI does not come with a BAT port, but the kit that I bought for a 4.5 inch
+    screen and oled screen and camera, DOES!
+
+    So this will all be possible. Hopefully the pi doesn't take too much energy to run.
+
 """
 
+try:
+    import pulsectl
+except ImportError:
+    print("Failed to import pulsectl.")
+
+try:
+    from pycaw.pycaw import AudioUtilities
+except ImportError:
+    print("Failed to import pycaw.")
+
 def set_volume(volume_level):
-    devices = AudioUtilities.GetSpeakers()
-    volume = devices.EndpointVolume
-    volume.SetMasterVolumeLevelScalar(volume_level, None)
+    if system == 'Darwin':
+        subprocess.run()
+
+    elif system == 'Linux':
+        print("awesome")
+
+    elif system == 'Windows':
+        devices = AudioUtilities.GetSpeakers()
+        volume = devices.EndpointVolume
+        volume.SetMasterVolumeLevelScalar(volume_level, None)
 
 def get_volume():
     devices = AudioUtilities.GetSpeakers()
