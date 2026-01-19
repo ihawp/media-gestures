@@ -5,9 +5,12 @@ from mediapipe.tasks.python import vision
 import keyboard
 import time
 import platform
-import subprocess
 
 system = platform.system()
+
+# Not using subprocess otherwise.
+if system == 'Darwin':
+    import subprocess
 
 # Try to import pulsectl for PulseAudio
 try:
@@ -36,7 +39,22 @@ def set_volume(volume_level):
 
 def get_volume():
     if system == 'Darwin':
-        subprocess.run()
+        try:
+            result = subprocess.run(
+                ['osascript', '-e', 'output volume of (get volume settings)'],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            volume_str = result.stdout.strip()
+            return int(volume_str)
+        except subprocess.CalledProcessError as e:
+            print(f"OSAscript failed. {e.stderr}")
+            return None
+        except ValueError:
+            print("Failed to parse OSA output as an integer.")
+            return None
 
     elif system == 'Linux':
         print('awesome')
@@ -52,7 +70,6 @@ COOLDOWN_SECONDS = 2.0
 
 def handle_gesture(gesture_name):
     current_time = time.time()
-    
     current_vol = get_volume()
 
     # Place outside of timing because 2.0 seconds is too slow for volume up/down
@@ -79,14 +96,16 @@ def handle_gesture(gesture_name):
     
     """
     case "Open_Palm":
-        # Not working
-        print("wow")
+        set_volume(0.0)
     """
 
     match gesture_name:
         case "Closed_Fist":
             keyboard.press_and_release('play/pause media')
             print("Play/Pause")
+        case "Open_Palm":
+            set_volume(0.0)
+            print("Muted")
         case "Victory":
             keyboard.press_and_release('previous track')
             print("Previous track")
