@@ -17,7 +17,7 @@ The hand gestures enable you to volume up/down, skip, go back, pause, max volume
 - opencv-python (4.8.1.78)
 - mediapipe (0.10.21)
 - pycaw (20251023, for Windows)
-- pulsectl (24.12.0, for Linux)
+- pulsectl (24.12.0, for Linux/PulseAudio, will add PipeWire support)
 - gesture_recognizer.task ([Download Here](https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task)).
 
 ### Gesture Recognizer dot Task
