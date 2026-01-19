@@ -9,34 +9,13 @@ import subprocess
 
 system = platform.system()
 
-"""
-Issues after testing:
-
-- My face is not my hand, nor is it a thumb_down or a pointing_up
-- WSL was being a pain (normal), but trying to make cross-platform so I can install anywhere and utilize!
-    can also just add the 5 lines if I ever want to use this anywhere else.
-    Specificially I want to use it on my raspberry pi which I hope to addon to my car
-    as a media player, OBD reader, etc. Of course, it could utilize hotspot networks for internet
-    access and upload information or live stream stuff, idk man, anything.
-
-    Just need to make sure it has a small power supply for turning off the car.
-
-    We can likely signal that the car is off by receiving no response or a certain response from OBD,
-    And then we can engage in a shutdown as to not corrupt the raspberry pis memory.
-    This shutdown will be powered by the battery.
-
-    The PI does not come with a BAT port, but the kit that I bought for a 4.5 inch
-    screen and oled screen and camera, DOES!
-
-    So this will all be possible. Hopefully the pi doesn't take too much energy to run.
-
-"""
-
+# Try to import pulsectl for PulseAudio
 try:
     import pulsectl
 except ImportError:
     print("Failed to import pulsectl.")
 
+# Try to import pycaw for access to Windows Audio Utilities
 try:
     from pycaw.pycaw import AudioUtilities
 except ImportError:
@@ -44,7 +23,8 @@ except ImportError:
 
 def set_volume(volume_level):
     if system == 'Darwin':
-        subprocess.run()
+        volume_percent = int(volume_level * 100)
+        subprocess.run(['osascript', '-e', f'set volume output volume {volume_percent}'])
 
     elif system == 'Linux':
         print("awesome")
@@ -55,13 +35,20 @@ def set_volume(volume_level):
         volume.SetMasterVolumeLevelScalar(volume_level, None)
 
 def get_volume():
-    devices = AudioUtilities.GetSpeakers()
-    volume = devices.EndpointVolume
-    return volume.GetMasterVolumeLevelScalar()
+    if system == 'Darwin':
+        subprocess.run()
+
+    elif system == 'Linux':
+        print('awesome')
+
+    elif system == 'Windows':
+        devices = AudioUtilities.GetSpeakers()
+        volume = devices.EndpointVolume
+        return volume.GetMasterVolumeLevelScalar()
 
 # Track last execution time for each gesture
 last_gesture_time = {}
-COOLDOWN_SECONDS = 2.0  # Wait 1 second between same gesture calls
+COOLDOWN_SECONDS = 2.0
 
 def handle_gesture(gesture_name):
     current_time = time.time()
@@ -69,18 +56,23 @@ def handle_gesture(gesture_name):
     current_vol = get_volume()
 
     # Place outside of timing because 2.0 seconds is too slow for volume up/down
+    # I am sure others would disagree
     match gesture_name:
         case "Thumb_Up":
             set_volume(min(1.0, current_vol + 0.1))
             print("Volume up")
+            return
         case "Thumb_Down":
             set_volume(max(0.0, current_vol - 0.1))
             print("Volume down")
+            return
+        case _:
+            pass
 
     # Check if gesture is on cooldown
     if gesture_name in last_gesture_time:
         if current_time - last_gesture_time[gesture_name] < COOLDOWN_SECONDS:
-            return  # Skip if called too recently
+            return
     
     # Update last execution time
     last_gesture_time[gesture_name] = current_time
@@ -157,3 +149,30 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""
+Issues after testing:
+
+- My face is not my hand, nor is it a thumb_down or a pointing_up
+- A second hand on screen means both hands have to do the signal, or the 'leading hand'
+    (as it seems one hand is chosen to be cared about more) must do the signal. This usually
+    seems to be the hand that entered the cameras view first...fair enough.
+- WSL was being a pain (normal), but trying to make cross-platform so I can install anywhere and utilize!
+    I can also just add the 5 lines if I ever want to use this anywhere else.
+    
+    Specificially I want to use it on my raspberry pi which I hope to addon to my car
+    as a media player, OBD reader, etc. Of course, it could utilize hotspot networks for internet
+    access and upload information or live stream stuff, idk man, anything.
+
+    Just need to make sure it has a small power supply for turning off the car.
+
+    We can likely signal that the car is off by receiving no response or a certain response from OBD,
+    And then we can engage in a shutdown as to not corrupt the raspberry pis memory.
+    This shutdown will be powered by the battery.
+
+    The PI does not come with a BAT port, but the kit that I bought for a 4.5 inch
+    screen and oled screen and camera, DOES!
+
+    So this will all be possible. Hopefully the pi doesn't take too much energy to run.
+
+"""
