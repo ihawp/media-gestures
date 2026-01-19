@@ -6,6 +6,13 @@ from pycaw.pycaw import AudioUtilities
 import keyboard
 import time
 
+"""
+Issues after testing:
+
+- My face is not my hand, nor is it a thumb_down or a pointing_up
+- 
+"""
+
 def set_volume(volume_level):
     devices = AudioUtilities.GetSpeakers()
     volume = devices.EndpointVolume
@@ -24,6 +31,8 @@ def handle_gesture(gesture_name):
     current_time = time.time()
     
     current_vol = get_volume()
+
+    # Place outside of timing because 2.0 seconds is too slow for volume up/down
     match gesture_name:
         case "Thumb_Up":
             set_volume(min(1.0, current_vol + 0.1))
@@ -42,7 +51,7 @@ def handle_gesture(gesture_name):
     
     """
     case "Open_Palm":
-        # not working
+        # Not working
         print("wow")
     """
 
@@ -97,12 +106,12 @@ def main():
             if confidence > 0.7:  # Only act on confident detections
                 handle_gesture(gesture_name)
                 cv2.putText(frame, f'{gesture_name} ({confidence:.2f})', 
-                           (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                           (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
         # Show current volume
         current_vol = get_volume()
         cv2.putText(frame, f'Volume: {int(current_vol * 100)}%', 
-                   (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
         cv2.imshow('Gesture Media Control', frame)
         cv2.waitKey(1)
