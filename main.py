@@ -106,17 +106,18 @@ def handle_gesture(gesture_name):
     last_gesture_time[gesture_name] = current_time
     
     """
-    case "Open_Palm":
-        set_volume(0.0)
+        # Hard to detect (maybe I have weird hands)
+        # Also, there are not many hand gestures to settle on besides what is listed here
+        # so having a safe option like an open palm is ideal.
+        case "Open_Palm":
+            set_volume(0.0)
+            print("Muted")
     """
 
     match gesture_name:
         case "Closed_Fist":
             keyboard.press_and_release('play/pause media')
             print("Play/Pause")
-        case "Open_Palm":
-            set_volume(0.0)
-            print("Muted")
         case "Victory":
             keyboard.press_and_release('previous track')
             print("Previous track")
