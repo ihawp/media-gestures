@@ -2,15 +2,23 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import keyboard
+# import keyboard
+from pynput.keyboard import Key, Controller as KeyboardController
 import time
 import platform
 
+keyboard = KeyboardController()
 system = platform.system()
 
 # Not using subprocess otherwise.
 if system == 'Darwin':
     import subprocess
+
+elif system == 'Linux':
+    # remove if you are not using the picamera
+    # https://pip-assets.raspberrypi.com/categories/652-raspberry-pi-camera-module-2/documents/RP-008156-DS-2-picamera2-manual.pdf?disposition=inline
+    from picamera2 import Picamera2, Preview
+    from libcamera import Transform
 
 # Try to import pulsectl for PulseAudio
 try:
@@ -68,7 +76,12 @@ def get_volume():
             return None
 
     elif system == 'Linux':
-        print(pulsectl)
+        with pulsectl.Pulse('volume-reader') as pulse:
+            sink = pulse.sink_list()[0]
+            vol = sink.volume
+            average_volume = vol.value_flat
+            return average_volume
+        return 0.0
 
     elif system == 'Windows':
         devices = AudioUtilities.GetSpeakers()
@@ -116,19 +129,95 @@ def handle_gesture(gesture_name):
 
     match gesture_name:
         case "Closed_Fist":
-            keyboard.press_and_release('play/pause media')
+            keyboard.press(Key.media_play_pause)
+            keyboard.release(Key.media_play_pause)
+            # keyboard.press_and_release('play/pause media')
             print("Play/Pause")
         case "Victory":
-            keyboard.press_and_release('previous track')
+            keyboard.press(Key.media_previous)
+            keyboard.release(Key.media_previous)
+            # keyboard.press_and_release('previous track')
             print("Previous track")
         case "Pointing_Up":
-            keyboard.press_and_release('next track')
+            keyboard.press(Key.media_next)
+            keyboard.release(Key.media_next)
+            # keyboard.press_and_release('next track')
             print("Next track")
         case "ILoveYou":
             set_volume(1.0)
             print("MAX Volume")
         case _:
             pass
+
+def recognize_gestures(mp_image, recognizer, frame, frame_count):
+    # Recognize gestures
+    recognition_result = recognizer.recognize_for_video(mp_image, frame_count)
+        
+    # Handle detected gestures
+    if recognition_result.gestures:
+        gesture = recognition_result.gestures[0][0]
+        gesture_name = gesture.category_name
+        confidence = gesture.score
+            
+        if confidence > 0.7:  # Only act on confident detections
+            handle_gesture(gesture_name)
+            cv2.putText(frame, f'{gesture_name} ({confidence:.2f})', 
+                        (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        
+    # Show current volume
+    current_vol = get_volume()
+    cv2.putText(frame, f'Volume: {int(current_vol * 100)}%', 
+                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        
+    cv2.imshow('Gesture Media Control', frame)
+    cv2.waitKey(1)
+    
+def use_cv2_camera(frame_count, recognizer):
+    cap = cv2.VideoCapture(0)
+   
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        frame_count += 1
+
+        # Convert to MediaPipe image
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    
+        recognize_gestures(mp_image, recognizer, frame, frame_count)
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+def use_picamera2(frame_count, recognizer):
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(
+        main={"format": "RGB888", "size": (640, 480)},
+        transform=Transform(hflip=1)
+    )
+    picam2.configure(config)
+    picam2.start()
+    while True:
+
+        # Get the current frame and convert it to a mp_image
+        # Send the frame to recognize_gestures function
+        # Release the camera when the while loop breaks
+        # break
+   
+        frame = picam2.capture_array()
+
+        frame_count += 1
+
+        mp_image = mp.Image(
+            image_format=mp.ImageFormat.SRGB,
+            data=frame
+        )
+
+        recognize_gestures(mp_image, recognizer, frame, frame_count)
+
+    picam2.stop()
+    cv2.destroyAllWindows()
 
 def main():
     # Download gesture_recognizer.task from:
@@ -139,45 +228,13 @@ def main():
         base_options=base_options,
         running_mode=vision.RunningMode.VIDEO)
     recognizer = vision.GestureRecognizer.create_from_options(options)
-    
-    cap = cv2.VideoCapture(0)
+  
     frame_count = 0
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        
-        frame_count += 1
-        
-        # Convert to MediaPipe image
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        
-        # Recognize gestures
-        recognition_result = recognizer.recognize_for_video(mp_image, frame_count)
-        
-        # Handle detected gestures
-        if recognition_result.gestures:
-            gesture = recognition_result.gestures[0][0]
-            gesture_name = gesture.category_name
-            confidence = gesture.score
-            
-            if confidence > 0.7:  # Only act on confident detections
-                handle_gesture(gesture_name)
-                cv2.putText(frame, f'{gesture_name} ({confidence:.2f})', 
-                           (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        
-        # Show current volume
-        current_vol = get_volume()
-        cv2.putText(frame, f'Volume: {int(current_vol * 100)}%', 
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        
-        cv2.imshow('Gesture Media Control', frame)
-        cv2.waitKey(1)
-    
-    cap.release()
-    cv2.destroyAllWindows()
 
+    if system == 'Windows' or system == 'Darwin':
+        use_cv2_camera(frame_count, recognizer)
+    elif system == 'Linux':
+        use_picamera2(frame_count, recognizer)
 if __name__ == "__main__":
     main()
 
