@@ -12,6 +12,7 @@ The hand gestures enable you to volume up/down, skip, go back, pause, max volume
 
 ## Requirements (versions I am using)
 
+- Webcam
 - Python (3.8 - 3.12.6)
 - opencv-python (4.8.1.78)
 - mediapipe (0.10.21)
