@@ -27,10 +27,18 @@ except ImportError:
 def set_volume(volume_level):
     if system == 'Darwin':
         volume_percent = int(volume_level * 100)
-        subprocess.run(['osascript', '-e', f'set volume output volume {volume_percent}'])
+        # https://ss64.com/mac/osascript.html
+        try:
+            subprocess.run(['osascript', '-e', f'set volume output volume {volume_percent}'])
+        except subprocess.CalledProcessError as e:
+            print(f"OSAScript set_volume failed. {e.stderr}")
 
     elif system == 'Linux':
-        print("awesome")
+        # https://pypi.org/project/pulsectl/
+        with pulsectl.Pulse('volume-increaser') as pulse:
+            for sink in pulse.sink_list():
+                # Volume is usually in 0-1.0 range, with >1.0 being soft-boosted
+                pulse.volume_change_all_chans(sink, volume_level)
 
     elif system == 'Windows':
         devices = AudioUtilities.GetSpeakers()
@@ -48,7 +56,10 @@ def get_volume():
                 text=True
             )
             volume_str = result.stdout.strip()
-            return int(volume_str)
+
+            # I presume I need to divide by 100 here.
+            # TODO: Test.
+            return float(int(volume_str)/100)
         except subprocess.CalledProcessError as e:
             print(f"OSAscript failed. {e.stderr}")
             return None
@@ -57,7 +68,7 @@ def get_volume():
             return None
 
     elif system == 'Linux':
-        print('awesome')
+        print(pulsectl)
 
     elif system == 'Windows':
         devices = AudioUtilities.GetSpeakers()
