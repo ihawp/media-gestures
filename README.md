@@ -1,27 +1,26 @@
-# Gesture Controlled Media for Windows
-
-Note: Only works on Windows as of January 17, 2026.
+# Gesture Controlled Media
 
 ## Goal
-```
-build something with a camera
-```
 
-...and so I did!
+Build something with a camera.
 
 ## Result
+
 "Gesture Media Control" is a Python script that enables control of your computers media via easy to remember hand gestures.
 
 The hand gestures enable you to volume up/down, skip, go back, pause, max volume.
 
 ## Requirements (versions I am using)
+
 - Python (3.8 - 3.12.6)
 - opencv-python (4.8.1.78)
 - mediapipe (0.10.21)
-- pycaw (20251023)
+- pycaw (20251023, for Windows)
+- pulsectl (24.12.0, for Linux)
 - gesture_recognizer.task ([Download Here](https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task)).
 
 ### Gesture Recognizer dot Task
+
 This is a pre-trained model that recognizes hand gestures from the camera frames captured by OpenCV. Download it and place it next to main.py.
 
 ## Actions
